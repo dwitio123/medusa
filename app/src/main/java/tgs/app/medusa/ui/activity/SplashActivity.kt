@@ -6,17 +6,20 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import tgs.app.medusa.R
-import tgs.app.medusa.databinding.ActivityMainBinding
+import tgs.app.medusa.databinding.ActivitySplashBinding
 
-class MainActivity : AppCompatActivity() {
+class SplashActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMainBinding
+    private lateinit var binding: ActivitySplashBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -24,11 +27,11 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        binding.btnStart.setOnClickListener {
-            startActivity(Intent(this@MainActivity, PetrificationActivity::class.java))
-        }
-        binding.btnHowToUse.setOnClickListener {
-            //TODO how to use
+        lifecycleScope.launch {
+            delay(3000)
+            val intent = Intent(this@SplashActivity, MainActivity::class.java)
+            startActivity(intent)
+            finish()
         }
     }
 }
