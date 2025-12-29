@@ -54,9 +54,9 @@ class PetrificationActivity : AppCompatActivity() {
 
         checkPermissionAndStart()
 
-        binding.imgMedusa.setOnClickListener {
-            checkPermissionAndStart()
-        }
+//        binding.imgMedusa.setOnClickListener {
+//            checkPermissionAndStart()
+//        }
     }
 
     private fun checkPermissionAndStart() {
@@ -152,7 +152,7 @@ class PetrificationActivity : AppCompatActivity() {
                                 binding.rayMedusa.visibility = View.INVISIBLE
                                 binding.txtStatus.text = "IDLE"
                                 sfx.stop()
-//                                restartRecognition()
+                                restartRecognition()
                             }
                         } else {
                             Log.i("speech", "Format waktu tidak ditemukan dalam kalimat")
