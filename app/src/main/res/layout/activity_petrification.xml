@@ -43,18 +43,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
-        android:id="@+id/ray_medusa"
-        android:layout_width="360dp"
-        android:layout_height="360dp"
-        android:background="@drawable/ray_medusa"
-        android:visibility="invisible"
-        android:contentDescription="@string/medusa"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
@@ -79,5 +67,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+    <ImageView
+        android:id="@+id/ray_medusa"
+        android:layout_width="360dp"
+        android:layout_height="360dp"
+        android:background="@drawable/ray_medusa"
+        android:visibility="invisible"
+        android:contentDescription="@string/medusa"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

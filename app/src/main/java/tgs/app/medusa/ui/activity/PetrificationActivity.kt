@@ -60,11 +60,11 @@ class PetrificationActivity : AppCompatActivity() {
 //        }
 
         val colors = intArrayOf(
-            ContextCompat.getColor(this, android.R.color.white),
-            ContextCompat.getColor(this, android.R.color.white),
-            ContextCompat.getColor(this, android.R.color.white),
-            ContextCompat.getColor(this, android.R.color.white),
-            ContextCompat.getColor(this, android.R.color.white)
+            getColor(this, android.R.color.white),
+            getColor(this, android.R.color.white),
+            getColor(this, android.R.color.white),
+            getColor(this, android.R.color.white),
+            getColor(this, android.R.color.white)
         )
         binding.progress.setColors(colors)
     }
@@ -172,7 +172,7 @@ class PetrificationActivity : AppCompatActivity() {
 //                                binding.rayMedusa.visibility = View.VISIBLE
                                 animateRayActivation()
                                 binding.txtStatus.text = "ACTIVATED"
-                                binding.txtStatus.setTextColor(ContextCompat.getColor(this@PetrificationActivity, R.color.red))
+                                binding.txtStatus.setTextColor(getColor(this@PetrificationActivity, R.color.red))
 
                                 val sfx = MediaPlayer.create(this@PetrificationActivity, R.raw.sfx_medusa)
                                 sfx.start()
@@ -185,14 +185,13 @@ class PetrificationActivity : AppCompatActivity() {
                                 }.start()
                                 binding.txtRange.text = "0 Meter 0 Second"
                                 binding.txtStatus.text = "IDLE"
-                                binding.txtStatus.setTextColor(ContextCompat.getColor(this@PetrificationActivity, R.color.white))
+                                binding.txtStatus.setTextColor(getColor(this@PetrificationActivity, R.color.white))
                                 sfx.release()
                                 restartRecognition()
                             }
                         } else {
                             Log.i("speech", "Format tidak sesuai (Harus: X meter X second)")
-                            binding.txtRange.text = result
-                            binding.txtStatus.text = "FORMAT NOT FOUND"
+                            binding.txtRange.text = "TRY AGAIN"
                             restartRecognition()
                         }
                     }
@@ -220,17 +219,15 @@ class PetrificationActivity : AppCompatActivity() {
     private fun animateRayActivation() {
         binding.rayMedusa.apply {
             visibility = View.VISIBLE
-            // Set skala awal ke 0 (kecil sekali)
             scaleX = 0f
             scaleY = 0f
             alpha = 1f
 
-            // Animasi membesar dan muncul (fade in)
             animate()
-                .scaleX(10f) // Membesar sampai 1.5x ukuran asli
+                .scaleX(10f)
                 .scaleY(10f)
                 .alpha(1f)
-                .setDuration(10000) // Durasi 1 detik
+                .setDuration(10000)
                 .withEndAction {
                     // Opsional: Animasi "denyut" setelah membesar
                     animatePulse()
