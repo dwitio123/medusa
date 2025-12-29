@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">medusa</string>
     <string name="medusa">MEDUSA</string>
-    <string name="petrification_weapon">PETRIFICATION WEAPON</string>
+    <string name="petrification_weapon_splash">PETRIFICATION\nWEAPON</string>
+    <string name="petrification_weapon_main">PETRIFICATION WEAPON</string>
     <string name="version_app">V1.0</string>
 </resources>
