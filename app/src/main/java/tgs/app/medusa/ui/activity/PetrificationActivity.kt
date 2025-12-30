@@ -11,6 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getColor
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
@@ -57,6 +58,15 @@ class PetrificationActivity : AppCompatActivity() {
 //        binding.imgMedusa.setOnClickListener {
 //            checkPermissionAndStart()
 //        }
+
+        val colors = intArrayOf(
+            getColor(this, android.R.color.white),
+            getColor(this, android.R.color.white),
+            getColor(this, android.R.color.white),
+            getColor(this, android.R.color.white),
+            getColor(this, android.R.color.white)
+        )
+        binding.progress.setColors(colors)
     }
 
     private fun checkPermissionAndStart() {
@@ -102,62 +112,86 @@ class PetrificationActivity : AppCompatActivity() {
                     }
 
                     if (result != null) {
-                        // Regex yang diperbarui:
-                        // (\d+|one|two|three|four|five|six|seven|eight|nine|ten) -> Mencari angka digit ATAU kata angka
-                        // \s* -> spasi opsional
-                        // second(s)? -> kata second atau seconds
-                        val regex = Regex("""(\d+|one|to|two|three|four|five|six|seven|eight|nine|ten)\s*second(s)?""", RegexOption.IGNORE_CASE)
+                        // Regex untuk menangkap Angka Meter dan Angka Detik
+                        // Group 1: Angka/Kata untuk Meter
+                        // Group 2: Angka/Kata untuk Second
+                        val numberPattern = """(\d+|one|two|to|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|twenty|thirty|forty|fifty)"""
+
+                        val regex = Regex(
+                            """$numberPattern\s*meter(?:s)?\s*$numberPattern\s*second(?:s)?""",
+                            RegexOption.IGNORE_CASE
+                        )
+
                         val match = regex.find(result)
 
                         if (match != null) {
-                            val secondValue = match.value // Contoh: "one second" atau "1 second"
-                            Log.i("speech", "Waktu yang diambil: $secondValue")
+                            // Ambil nilai mentah dari grup regex
+                            val rawMeter = match.groupValues[1].lowercase()
+                            val rawSecond = match.groupValues[2].lowercase()
 
-                            // Ambil angka/kata angkanya saja
-                            val rawValue = match.groupValues[1]
-
-                            // Konversi kata menjadi angka (Opsional, jika Anda butuh Int untuk kalkulasi)
-                            val numericValue = when(rawValue.lowercase()) {
-                                "one" -> "1"
-                                "to", "two" -> "2"
-                                "three" -> "3"
-                                "four" -> "4"
-                                "five" -> "5"
-                                "six" -> "6"
-                                "seven" -> "7"
-                                "eight" -> "8"
-                                "nine" -> "9"
-                                "ten" -> "10"
-                                else -> rawValue // Jika sudah berupa digit "1", "2", dll
+                            // Fungsi lokal untuk konversi kata ke string angka
+                            fun wordToNumber(value: String): String {
+                                return when (value) {
+                                    "one" -> "1"
+                                    "to", "two" -> "2"
+                                    "three" -> "3"
+                                    "four" -> "4"
+                                    "five" -> "5"
+                                    "six" -> "6"
+                                    "seven" -> "7"
+                                    "eight" -> "8"
+                                    "nine" -> "9"
+                                    "ten" -> "10"
+                                    "eleven" -> "11"
+                                    "twelve" -> "12"
+                                    "twenty" -> "20"
+                                    "thirty" -> "30"
+                                    "forty" -> "40"
+                                    "fifty" -> "50"
+                                    else -> value
+                                }
                             }
 
-                            Log.i("speech", "Angka detiknya: $numericValue")
+                            val meterValue = wordToNumber(rawMeter)
+                            val secondValue = wordToNumber(rawSecond)
 
-                            binding.txtRange.text = result
+                            Log.i("speech", "Detected: $meterValue Meters, $secondValue Seconds")
+
+                            // Tampilkan hasil di UI
+                            binding.txtRange.text = "$meterValue Meter $secondValue Second"
 
                             lifecycleScope.launch {
-                                var timeLeft = numericValue.toInt()
+                                var timeLeft = secondValue.toIntOrNull() ?: 0
                                 while (timeLeft > 0) {
                                     binding.txtStatus.text = "COUNTDOWN: $timeLeft"
-                                    delay(1000) // Tunggu 1 detik
+                                    delay(1000)
                                     timeLeft--
                                 }
-                                binding.rayMedusa.visibility = View.VISIBLE
+
+                                // Efek Aktivasi
+//                                binding.rayMedusa.visibility = View.VISIBLE
+                                animateRayActivation()
                                 binding.txtStatus.text = "ACTIVATED"
+                                binding.txtStatus.setTextColor(getColor(this@PetrificationActivity, R.color.red))
+
                                 val sfx = MediaPlayer.create(this@PetrificationActivity, R.raw.sfx_medusa)
                                 sfx.start()
-                                Log.i("speech", "Countdown selesai")
 
-                                delay(10000)
-                                binding.rayMedusa.visibility = View.INVISIBLE
+                                delay(10000) // Durasi Medusa aktif
+
+                                // Reset ke IDLE
+                                binding.rayMedusa.animate().scaleX(0f).scaleY(0f).alpha(0f).setDuration(500).withEndAction {
+                                    binding.rayMedusa.visibility = View.INVISIBLE
+                                }.start()
+                                binding.txtRange.text = "0 Meter 0 Second"
                                 binding.txtStatus.text = "IDLE"
-                                sfx.stop()
+                                binding.txtStatus.setTextColor(getColor(this@PetrificationActivity, R.color.white))
+                                sfx.release()
                                 restartRecognition()
                             }
                         } else {
-                            Log.i("speech", "Format waktu tidak ditemukan dalam kalimat")
-                            binding.txtRange.text = result
-                            binding.txtStatus.text = "TIME NOT FOUND"
+                            Log.i("speech", "Format tidak sesuai (Harus: X meter X second)")
+                            binding.txtRange.text = "TRY AGAIN"
                             restartRecognition()
                         }
                     }
@@ -181,6 +215,42 @@ class PetrificationActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun animateRayActivation() {
+        binding.rayMedusa.apply {
+            visibility = View.VISIBLE
+            scaleX = 0f
+            scaleY = 0f
+            alpha = 1f
+
+            animate()
+                .scaleX(10f)
+                .scaleY(10f)
+                .alpha(1f)
+                .setDuration(10000)
+                .withEndAction {
+                    // Opsional: Animasi "denyut" setelah membesar
+                    animatePulse()
+                }
+                .start()
+        }
+    }
+
+    private fun animatePulse() {
+        binding.rayMedusa.animate()
+            .scaleX(1.2f)
+            .scaleY(1.2f)
+            .setDuration(800)
+            .withEndAction {
+                binding.rayMedusa.animate()
+                    .scaleX(1.5f)
+                    .scaleY(1.5f)
+                    .setDuration(800)
+                    .start()
+            }
+            .start()
+    }
+
 
     override fun onDestroy() {
         Speech.getInstance().shutdown()

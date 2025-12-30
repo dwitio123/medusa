@@ -27,6 +27,7 @@
         android:text="0 meter 0 second"
         android:textColor="@color/white"
         android:textSize="32sp"
+        android:fontFamily="@font/itc_machine_std_medium"
         app:layout_constraintBottom_toTopOf="@+id/imgMedusa"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -43,23 +44,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
-        android:id="@+id/ray_medusa"
-        android:layout_width="360dp"
-        android:layout_height="360dp"
-        android:background="@drawable/ray_medusa"
-        android:visibility="invisible"
-        android:contentDescription="@string/medusa"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/petrification_weapon"
+        android:fontFamily="@font/itc_machine_std_medium"
+        android:text="@string/petrification_weapon_main"
         android:textAlignment="center"
         android:textColor="@color/white"
         android:textSize="32sp"
@@ -76,8 +66,21 @@
         android:textAlignment="center"
         android:textSize="32sp"
         android:textColor="@color/white"
+        android:fontFamily="@font/itc_machine_std_medium"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+    <ImageView
+        android:id="@+id/ray_medusa"
+        android:layout_width="360dp"
+        android:layout_height="360dp"
+        android:background="@drawable/ray_medusa"
+        android:visibility="invisible"
+        android:contentDescription="@string/medusa"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
