@@ -1,8 +1,11 @@
 package tgs.app.medusa.ui.activity
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.hardware.camera2.CameraManager
 import android.media.MediaPlayer
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -174,12 +177,17 @@ class PetrificationActivity : AppCompatActivity() {
                                 binding.txtStatus.text = "ACTIVATED"
                                 binding.txtStatus.setTextColor(getColor(this@PetrificationActivity, R.color.red))
 
+                                launch {
+                                    flashlightFadeEffect(10000) // 10 detik fade
+                                }
+
                                 val sfx = MediaPlayer.create(this@PetrificationActivity, R.raw.sfx_medusa)
                                 sfx.start()
 
                                 delay(10000) // Durasi Medusa aktif
 
                                 // Reset ke IDLE
+                                turnOnFlashlight(false)
                                 binding.rayMedusa.animate().scaleX(0f).scaleY(0f).alpha(0f).setDuration(500).withEndAction {
                                     binding.rayMedusa.visibility = View.INVISIBLE
                                 }.start()
@@ -249,6 +257,60 @@ class PetrificationActivity : AppCompatActivity() {
                     .start()
             }
             .start()
+    }
+
+        private fun turnOnFlashlight(active: Boolean) {
+            val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            try {
+                val cameraId = cameraManager.cameraIdList[0]
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    cameraManager.setTorchMode(cameraId, active)
+                }
+            } catch (e: Exception) {
+                Log.e("Flashlight", "Error: ${e.message}")
+            }
+        }
+
+    // Fungsi Fade In: Menyala secara bertahap selama 10 detik
+    private suspend fun flashlightFadeEffect(durationMs: Long) {
+        val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        try {
+            val cameraId = cameraManager.cameraIdList[0]
+
+            // 1. Pastikan senter mulai dari kondisi mati/redup
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val characteristics = cameraManager.getCameraCharacteristics(cameraId)
+                val maxLevel = characteristics.get(android.hardware.camera2.CameraCharacteristics.FLASH_INFO_STRENGTH_MAXIMUM_LEVEL) ?: 1
+
+                val steps = 20 // jumlah tahapan kecerahan
+                val interval = durationMs / steps
+
+                // Perulangan naik (Fade In)
+                for (i in 1..steps) {
+                    val currentLevel = (maxLevel * i) / steps
+                    if (currentLevel > 0) {
+                        cameraManager.turnOnTorchWithStrengthLevel(cameraId, currentLevel)
+                    }
+                    delay(interval)
+                }
+            } else {
+                // Untuk HP di bawah Android 13:
+                // Karena hardware tidak mendukung level intensitas,
+                // kita hanya bisa menyalakannya setelah jeda atau langsung menyala.
+                // Di sini kita buat delay sebelum menyala penuh sebagai simulasi.
+                delay(durationMs / 2)
+                turnOnFlashlight(true)
+                delay(durationMs / 2)
+            }
+
+            // Opsional: Tetap menyala atau matikan setelah efek selesai?
+            // Jika ingin tetap menyala biarkan saja. Jika ingin mati setelah 10 detik:
+            // delay(1000)
+            // turnOnFlashlight(false)
+
+        } catch (e: Exception) {
+            Log.e("Flashlight", "Fade In Error: ${e.message}")
+        }
     }
 
 
