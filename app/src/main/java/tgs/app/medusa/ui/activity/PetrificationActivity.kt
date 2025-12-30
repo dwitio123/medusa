@@ -32,15 +32,18 @@ class PetrificationActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPetrificationBinding
 
     private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val audioGranted = permissions[Manifest.permission.RECORD_AUDIO] ?: false
+        val cameraGranted = permissions[Manifest.permission.CAMERA] ?: false
+
+        if (audioGranted && cameraGranted) {
             startSpeechRecognition()
         } else {
-            Toast.makeText(this, "Izin mikrofon diperlukan untuk fitur ini", Toast.LENGTH_SHORT)
-                .show()
+            Toast.makeText(this, "Izin Mikrofon & Kamera diperlukan", Toast.LENGTH_SHORT).show()
         }
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,19 +74,17 @@ class PetrificationActivity : AppCompatActivity() {
         )
         binding.progress.setColors(colors)
     }
-
     private fun checkPermissionAndStart() {
-        when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.RECORD_AUDIO
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                startSpeechRecognition()
-            }
+        val audioPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+        val cameraPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
 
-            else -> {
-                requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-            }
+        if (audioPermission == PackageManager.PERMISSION_GRANTED && cameraPermission == PackageManager.PERMISSION_GRANTED) {
+            startSpeechRecognition()
+        } else {
+            requestPermissionLauncher.launch(arrayOf(
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.CAMERA
+            ))
         }
     }
 
@@ -271,47 +272,41 @@ class PetrificationActivity : AppCompatActivity() {
             }
         }
 
-    // Fungsi Fade In: Menyala secara bertahap selama 10 detik
     private suspend fun flashlightFadeEffect(durationMs: Long) {
         val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
             val cameraId = cameraManager.cameraIdList[0]
+            val characteristics = cameraManager.getCameraCharacteristics(cameraId)
 
-            // 1. Pastikan senter mulai dari kondisi mati/redup
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                val characteristics = cameraManager.getCameraCharacteristics(cameraId)
+            // Cek apakah HP mendukung kontrol intensitas (API 33+)
+            val isStrengthSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                    (characteristics.get(android.hardware.camera2.CameraCharacteristics.FLASH_INFO_STRENGTH_MAXIMUM_LEVEL) ?: 1) > 1
+
+            if (isStrengthSupported) {
                 val maxLevel = characteristics.get(android.hardware.camera2.CameraCharacteristics.FLASH_INFO_STRENGTH_MAXIMUM_LEVEL) ?: 1
-
-                val steps = 20 // jumlah tahapan kecerahan
+                val steps = 20
                 val interval = durationMs / steps
 
-                // Perulangan naik (Fade In)
                 for (i in 1..steps) {
                     val currentLevel = (maxLevel * i) / steps
-                    if (currentLevel > 0) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         cameraManager.turnOnTorchWithStrengthLevel(cameraId, currentLevel)
                     }
                     delay(interval)
                 }
             } else {
-                // Untuk HP di bawah Android 13:
-                // Karena hardware tidak mendukung level intensitas,
-                // kita hanya bisa menyalakannya setelah jeda atau langsung menyala.
-                // Di sini kita buat delay sebelum menyala penuh sebagai simulasi.
-                delay(durationMs / 2)
-                turnOnFlashlight(true)
-                delay(durationMs / 2)
+                // FALLBACK: Jika tidak mendukung tingkat kecerahan,
+                // senter langsung menyala penuh
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    cameraManager.setTorchMode(cameraId, true)
+                }
+                delay(durationMs)
             }
-
-            // Opsional: Tetap menyala atau matikan setelah efek selesai?
-            // Jika ingin tetap menyala biarkan saja. Jika ingin mati setelah 10 detik:
-            // delay(1000)
-            // turnOnFlashlight(false)
-
         } catch (e: Exception) {
             Log.e("Flashlight", "Fade In Error: ${e.message}")
         }
     }
+
 
 
     override fun onDestroy() {
