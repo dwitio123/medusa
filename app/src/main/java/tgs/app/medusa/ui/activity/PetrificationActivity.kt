@@ -12,12 +12,15 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getColor
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.gotev.speech.GoogleVoiceTypingDisabledException
@@ -26,10 +29,15 @@ import net.gotev.speech.SpeechDelegate
 import net.gotev.speech.SpeechRecognitionNotAvailable
 import tgs.app.medusa.R
 import tgs.app.medusa.databinding.ActivityPetrificationBinding
+import tgs.app.medusa.ui.viewmodel.PetrificationEvent
+import tgs.app.medusa.ui.viewmodel.PetrificationStatus
+import tgs.app.medusa.ui.viewmodel.PetrificationUiState
+import tgs.app.medusa.ui.viewmodel.PetrificationViewModel
 
 class PetrificationActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityPetrificationBinding
+    private val viewModel: PetrificationViewModel by viewModels()
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -73,6 +81,25 @@ class PetrificationActivity : AppCompatActivity() {
             getColor(this, android.R.color.white)
         )
         binding.progress.setColors(colors)
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    renderState(state)
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.events.collect { event ->
+                    when (event) {
+                        is PetrificationEvent.RestartRecognition -> restartRecognition()
+                        is PetrificationEvent.Activate -> handleActivation(event.durationMs)
+                    }
+                }
+            }
+        }
     }
     private fun checkPermissionAndStart() {
         val audioPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
@@ -109,101 +136,7 @@ class PetrificationActivity : AppCompatActivity() {
 
                 override fun onSpeechResult(result: String?) {
                     Log.i("speech", "Full Result: $result")
-
-                    if (result.isNullOrEmpty()) {
-                        restartRecognition()
-                        return
-                    }
-
-                    if (result != null) {
-                        // Regex untuk menangkap Angka Meter dan Angka Detik
-                        // Group 1: Angka/Kata untuk Meter
-                        // Group 2: Angka/Kata untuk Second
-                        val numberPattern = """(\d+|one|two|to|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|twenty|thirty|forty|fifty)"""
-
-                        val regex = Regex(
-                            """$numberPattern\s*meter(?:s)?\s*$numberPattern\s*second(?:s)?""",
-                            RegexOption.IGNORE_CASE
-                        )
-
-                        val match = regex.find(result)
-
-                        if (match != null) {
-                            // Ambil nilai mentah dari grup regex
-                            val rawMeter = match.groupValues[1].lowercase()
-                            val rawSecond = match.groupValues[2].lowercase()
-
-                            // Fungsi lokal untuk konversi kata ke string angka
-                            fun wordToNumber(value: String): String {
-                                return when (value) {
-                                    "one" -> "1"
-                                    "to", "two" -> "2"
-                                    "three" -> "3"
-                                    "four" -> "4"
-                                    "five" -> "5"
-                                    "six" -> "6"
-                                    "seven" -> "7"
-                                    "eight" -> "8"
-                                    "nine" -> "9"
-                                    "ten" -> "10"
-                                    "eleven" -> "11"
-                                    "twelve" -> "12"
-                                    "twenty" -> "20"
-                                    "thirty" -> "30"
-                                    "forty" -> "40"
-                                    "fifty" -> "50"
-                                    else -> value
-                                }
-                            }
-
-                            val meterValue = wordToNumber(rawMeter)
-                            val secondValue = wordToNumber(rawSecond)
-
-                            Log.i("speech", "Detected: $meterValue Meters, $secondValue Seconds")
-
-                            // Tampilkan hasil di UI
-                            binding.txtRange.text = "$meterValue Meter $secondValue Second"
-
-                            lifecycleScope.launch {
-                                var timeLeft = secondValue.toIntOrNull() ?: 0
-                                while (timeLeft > 0) {
-                                    binding.txtStatus.text = "COUNTDOWN: $timeLeft"
-                                    delay(1000)
-                                    timeLeft--
-                                }
-
-                                // Efek Aktivasi
-//                                binding.rayMedusa.visibility = View.VISIBLE
-                                animateRayActivation()
-                                binding.txtStatus.text = "ACTIVATED"
-                                binding.txtStatus.setTextColor(getColor(this@PetrificationActivity, R.color.red))
-
-                                launch {
-                                    flashlightFadeEffect(10000) // 10 detik fade
-                                }
-
-                                val sfx = MediaPlayer.create(this@PetrificationActivity, R.raw.sfx_medusa)
-                                sfx.start()
-
-                                delay(10000) // Durasi Medusa aktif
-
-                                // Reset ke IDLE
-                                turnOnFlashlight(false)
-                                binding.rayMedusa.animate().scaleX(0f).scaleY(0f).alpha(0f).setDuration(500).withEndAction {
-                                    binding.rayMedusa.visibility = View.INVISIBLE
-                                }.start()
-                                binding.txtRange.text = "0 Meter 0 Second"
-                                binding.txtStatus.text = "IDLE"
-                                binding.txtStatus.setTextColor(getColor(this@PetrificationActivity, R.color.white))
-                                sfx.release()
-                                restartRecognition()
-                            }
-                        } else {
-                            Log.i("speech", "Format tidak sesuai (Harus: X meter X second)")
-                            binding.txtRange.text = "TRY AGAIN"
-                            restartRecognition()
-                        }
-                    }
+                    viewModel.onSpeechResult(result)
                 }
             })
         } catch (exc: SpeechRecognitionNotAvailable) {
@@ -260,17 +193,60 @@ class PetrificationActivity : AppCompatActivity() {
             .start()
     }
 
-        private fun turnOnFlashlight(active: Boolean) {
-            val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
-            try {
-                val cameraId = cameraManager.cameraIdList[0]
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    cameraManager.setTorchMode(cameraId, active)
-                }
-            } catch (e: Exception) {
-                Log.e("Flashlight", "Error: ${e.message}")
+    private fun renderState(state: PetrificationUiState) {
+        binding.txtRange.text = state.rangeText
+        when (state.status) {
+            PetrificationStatus.Idle -> {
+                binding.txtStatus.text = "IDLE"
+                binding.txtStatus.setTextColor(getColor(this, R.color.white))
+            }
+            PetrificationStatus.Countdown -> {
+                val countdownValue = state.countdown ?: 0
+                binding.txtStatus.text = "COUNTDOWN: $countdownValue"
+                binding.txtStatus.setTextColor(getColor(this, R.color.white))
+            }
+            PetrificationStatus.Activated -> {
+                binding.txtStatus.text = "ACTIVATED"
+                binding.txtStatus.setTextColor(getColor(this, R.color.red))
             }
         }
+    }
+
+    private fun handleActivation(durationMs: Long) {
+        lifecycleScope.launch {
+            animateRayActivation()
+
+            launch {
+                flashlightFadeEffect(durationMs)
+            }
+
+            val sfx = MediaPlayer.create(this@PetrificationActivity, R.raw.sfx_medusa)
+            sfx.start()
+
+            delay(durationMs)
+
+            turnOnFlashlight(false)
+            binding.rayMedusa.animate().scaleX(0f).scaleY(0f).alpha(0f).setDuration(500)
+                .withEndAction {
+                    binding.rayMedusa.visibility = View.INVISIBLE
+                }.start()
+            sfx.release()
+            viewModel.onActivationComplete()
+            restartRecognition()
+        }
+    }
+
+    private fun turnOnFlashlight(active: Boolean) {
+        val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        try {
+            val cameraId = cameraManager.cameraIdList[0]
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                cameraManager.setTorchMode(cameraId, active)
+            }
+        } catch (e: Exception) {
+            Log.e("Flashlight", "Error: ${e.message}")
+        }
+    }
 
     private suspend fun flashlightFadeEffect(durationMs: Long) {
         val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
