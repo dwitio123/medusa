@@ -1,4 +1,4 @@
-package tgs.app.medusa.ui.activity
+package tgs.app.medusa
 
 import android.content.Intent
 import android.os.Bundle
@@ -9,7 +9,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import tgs.app.medusa.R
 import tgs.app.medusa.databinding.ActivitySplashBinding
 
 class SplashActivity : AppCompatActivity() {

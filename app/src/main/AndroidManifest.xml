@@ -23,16 +23,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Medusa">
         <activity
-            android:name=".ui.activity.SettingsActivity"
+            android:name=".SettingsActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.activity.PetrificationActivity"
+            android:name=".PetrificationActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.activity.MainActivity"
+            android:name=".MainActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.activity.SplashActivity"
+            android:name=".SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

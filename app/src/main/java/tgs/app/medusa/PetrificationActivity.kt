@@ -1,8 +1,8 @@
-package tgs.app.medusa.ui.activity
+package tgs.app.medusa
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
+import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.media.MediaPlayer
 import android.os.Build
@@ -24,7 +24,6 @@ import net.gotev.speech.GoogleVoiceTypingDisabledException
 import net.gotev.speech.Speech
 import net.gotev.speech.SpeechDelegate
 import net.gotev.speech.SpeechRecognitionNotAvailable
-import tgs.app.medusa.R
 import tgs.app.medusa.databinding.ActivityPetrificationBinding
 
 class PetrificationActivity : AppCompatActivity() {
@@ -261,7 +260,7 @@ class PetrificationActivity : AppCompatActivity() {
     }
 
         private fun turnOnFlashlight(active: Boolean) {
-            val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            val cameraManager = getSystemService(CAMERA_SERVICE) as CameraManager
             try {
                 val cameraId = cameraManager.cameraIdList[0]
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -273,17 +272,17 @@ class PetrificationActivity : AppCompatActivity() {
         }
 
     private suspend fun flashlightFadeEffect(durationMs: Long) {
-        val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        val cameraManager = getSystemService(CAMERA_SERVICE) as CameraManager
         try {
             val cameraId = cameraManager.cameraIdList[0]
             val characteristics = cameraManager.getCameraCharacteristics(cameraId)
 
             // Cek apakah HP mendukung kontrol intensitas (API 33+)
             val isStrengthSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                    (characteristics.get(android.hardware.camera2.CameraCharacteristics.FLASH_INFO_STRENGTH_MAXIMUM_LEVEL) ?: 1) > 1
+                    (characteristics.get(CameraCharacteristics.FLASH_INFO_STRENGTH_MAXIMUM_LEVEL) ?: 1) > 1
 
             if (isStrengthSupported) {
-                val maxLevel = characteristics.get(android.hardware.camera2.CameraCharacteristics.FLASH_INFO_STRENGTH_MAXIMUM_LEVEL) ?: 1
+                val maxLevel = characteristics.get(CameraCharacteristics.FLASH_INFO_STRENGTH_MAXIMUM_LEVEL) ?: 1
                 val steps = 20
                 val interval = durationMs / steps
 
