@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black"
-    tools:context=".SettingsActivity">
+    tools:context=".HowToUseActivity">
 
     <TextView
         android:id="@+id/textView2"
@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:fontFamily="@font/itc_machine_std_medium"
-        android:text="SETTINGS"
+        android:text="HOW TO USE"
         android:textColor="@color/white"
         android:textSize="32sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -31,65 +31,35 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
-    <CheckBox
-        android:id="@+id/chkBoxCamera"
+    <ImageView
+        android:id="@+id/imageView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:src="@drawable/voice"
+        app:layout_constraintBottom_toTopOf="@+id/btnOk"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/view" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.45" />
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="380dp"
         android:layout_height="wrap_content"
-        android:text="Turn on camera"
+        android:layout_marginTop="24dp"
+        android:text="The way to use the petrification weapon is by adjusting the range and countdown through voice."
         android:textColor="@color/white"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="@+id/chkBoxCamera"
-        app:layout_constraintStart_toEndOf="@+id/chkBoxCamera"
-        app:layout_constraintTop_toTopOf="@+id/chkBoxCamera" />
-
-    <CheckBox
-        android:id="@+id/chkBoxFlashlight"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/chkBoxCamera" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Turn on flashlight"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="@+id/chkBoxFlashlight"
-        app:layout_constraintStart_toEndOf="@+id/chkBoxFlashlight"
-        app:layout_constraintTop_toTopOf="@+id/chkBoxFlashlight" />
-
-    <CheckBox
-        android:id="@+id/chkBoxSound"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/chkBoxFlashlight" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Turn on sound"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="@+id/chkBoxSound"
-        app:layout_constraintStart_toEndOf="@+id/chkBoxSound"
-        app:layout_constraintTop_toTopOf="@+id/chkBoxSound" />
+        app:layout_constraintTop_toBottomOf="@+id/imageView2" />
 
     <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/btnSave"
+        android:id="@+id/btnOk"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
         android:background="@drawable/custom_button_secondary"
-        android:text="SAVE"
+        android:text="OK"
         android:textColor="@color/black"
         android:textSize="16sp"
         android:textStyle="bold"

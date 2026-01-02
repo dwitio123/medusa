@@ -19,7 +19,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            v.setPadding(0, 0, 0, 0)
             insets
         }
 
@@ -27,7 +27,13 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this@MainActivity, PetrificationActivity::class.java))
         }
         binding.btnHowToUse.setOnClickListener {
-            //TODO how to use
+            startActivity(Intent(this@MainActivity, HowToUseActivity::class.java))
+        }
+        binding.btnSettings.setOnClickListener {
+            startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
+        }
+        binding.btnInfo.setOnClickListener {
+            startActivity(Intent(this@MainActivity, AboutActivity::class.java))
         }
     }
 }

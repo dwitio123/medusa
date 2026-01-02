@@ -5,16 +5,16 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import tgs.app.medusa.databinding.ActivitySettingsBinding
+import tgs.app.medusa.databinding.ActivityAboutBinding
 
-class SettingsActivity : AppCompatActivity() {
+class AboutActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivitySettingsBinding
+    private lateinit var binding: ActivityAboutBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        binding = ActivityAboutBinding.inflate(layoutInflater)
         setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -22,7 +22,7 @@ class SettingsActivity : AppCompatActivity() {
             insets
         }
 
-        binding.btnSave.setOnClickListener {
+        binding.btnOk.setOnClickListener {
             finish()
         }
     }

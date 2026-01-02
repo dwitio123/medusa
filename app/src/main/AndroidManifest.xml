@@ -23,6 +23,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Medusa">
         <activity
+            android:name=".AboutActivity"
+            android:exported="false" />
+        <activity
+            android:name=".HowToUseActivity"
+            android:exported="false" />
+        <activity
             android:name=".SettingsActivity"
             android:exported="false" />
         <activity
