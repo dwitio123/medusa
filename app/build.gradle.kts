@@ -51,4 +51,7 @@ dependencies {
 
     // android speech
     implementation(libs.speech)
+
+    //admob
+    implementation(libs.play.services.ads)
 }
