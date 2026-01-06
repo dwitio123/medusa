@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.media.MediaPlayer
-import com.google.android.gms.ads.AdRequest
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -19,8 +18,7 @@ import androidx.core.content.ContextCompat.getColor
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
-import com.google.android.gms.ads.LoadAdError
-import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.*
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import kotlinx.coroutines.delay
@@ -35,6 +33,7 @@ class PetrificationActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityPetrificationBinding
     private var mInterstitialAd: InterstitialAd? = null // Tambahkan variabel iklan
+    private var isAdsShowing = false
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -117,10 +116,36 @@ class PetrificationActivity : AppCompatActivity() {
     // 3. Fungsi untuk menampilkan iklan
     private fun showInterstitial() {
         if (mInterstitialAd != null) {
+            mInterstitialAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
+                override fun onAdShowedFullScreenContent() {
+                    isAdsShowing = true
+                    try {
+                        Speech.getInstance().stopListening()
+                    } catch (e: Exception) {
+                        Log.e("Speech", "Error stopping speech recognition", e)
+                    }
+                    Log.d("AdMob", "onAdShowedFullScreenContent: mic disabled")
+                }
+
+                override fun onAdDismissedFullScreenContent() {
+                    isAdsShowing = false
+                    Log.d("AdMob", "onAdDismissedFullScreenContent: restart recognition")
+                    mInterstitialAd = null
+                    loadInterstitial() // Reload untuk penggunaan iklan berikutnya
+                    restartRecognition()
+                }
+
+                override fun onAdFailedToShowFullScreenContent(p0: AdError) {
+                    isAdsShowing = false
+                    mInterstitialAd = null
+                    restartRecognition()
+                }
+            }
             mInterstitialAd?.show(this)
-            loadInterstitial() // Load lagi untuk penggunaan berikutnya
         } else {
             Log.d("AdMob", "Iklan belum siap.")
+            isAdsShowing = false
+            restartRecognition()
         }
     }
 
@@ -223,8 +248,10 @@ class PetrificationActivity : AppCompatActivity() {
 
                                 delay(10000) // Durasi Medusa aktif
 
-                                // Reset ke IDLE
+                                // show ads
                                 showInterstitial()
+
+                                // Reset ke IDLE
                                 turnOnFlashlight(false)
                                 binding.rayMedusa.animate().scaleX(0f).scaleY(0f).alpha(0f).setDuration(500).withEndAction {
                                     binding.rayMedusa.visibility = View.INVISIBLE
@@ -233,7 +260,6 @@ class PetrificationActivity : AppCompatActivity() {
                                 binding.txtStatus.text = "IDLE"
                                 binding.txtStatus.setTextColor(getColor(this@PetrificationActivity, R.color.white))
                                 sfx.release()
-                                restartRecognition()
                             }
                         } else {
                             Log.i("speech", "Format tidak sesuai (Harus: X meter X second)")
@@ -252,6 +278,11 @@ class PetrificationActivity : AppCompatActivity() {
 
     // Tambahkan fungsi pembantu untuk restart yang aman
     private fun restartRecognition() {
+        if (isAdsShowing) {
+            Log.d("speech", "Restart failed: Ads are currently showing")
+            return
+        }
+
         lifecycleScope.launch {
             delay(500) // Jeda singkat agar service tidak bentrok
             try {
