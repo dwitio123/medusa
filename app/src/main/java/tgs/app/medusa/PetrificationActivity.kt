@@ -119,6 +119,7 @@ class PetrificationActivity : AppCompatActivity() {
             mInterstitialAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
                 override fun onAdShowedFullScreenContent() {
                     isAdsShowing = true
+                    turnOnFlashlight(false)
                     try {
                         Speech.getInstance().stopListening()
                     } catch (e: Exception) {
@@ -248,11 +249,12 @@ class PetrificationActivity : AppCompatActivity() {
 
                                 delay(10000) // Durasi Medusa aktif
 
+                                turnOnFlashlight(false)
+
                                 // show ads
                                 showInterstitial()
 
                                 // Reset ke IDLE
-                                turnOnFlashlight(false)
                                 binding.rayMedusa.animate().scaleX(0f).scaleY(0f).alpha(0f).setDuration(500).withEndAction {
                                     binding.rayMedusa.visibility = View.INVISIBLE
                                 }.start()
@@ -356,6 +358,9 @@ class PetrificationActivity : AppCompatActivity() {
                 val interval = durationMs / steps
 
                 for (i in 1..steps) {
+                    // if ads suddenly show, cancel loop flashlight
+                    if (isAdsShowing) break
+
                     val currentLevel = (maxLevel * i) / steps
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         cameraManager.turnOnTorchWithStrengthLevel(cameraId, currentLevel)
